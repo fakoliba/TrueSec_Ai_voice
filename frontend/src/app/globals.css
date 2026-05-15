@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/*
+  Semantic colors flow: :root sets --app-* defaults; @theme maps --color-* to var(--app-*)
+  so Tailwind emits utilities using CSS variables (runtime theme). Per-business dashboard
+  themes override --app-* on .dashboard-theme-root[data-dashboard-theme=...] only.
+*/
+:root {
+  --primary-color: #d4af37;
+  --secondary-color: #4a4543;
+  --cta-color: #6d5e5e;
+  --text-color: #ffffff;
+  --background-color: #262626;
+  --hero-from: #5e5b66;
+  --hero-to: #7ba1b8;
+
+  /* Default (legacy dark) — same values previously in @theme inline */
+  --app-bg: #262626;
+  --app-fg: #ffffff;
+  --app-primary: #d4af37;
+  --app-primary-fg: #1a1a1a;
+  --app-secondary: #4a4543;
+  --app-secondary-fg: #f4f4f5;
+  --app-cta: #6d5e5e;
+  --app-cta-fg: #ffffff;
+  --app-card: #231f20;
+  --app-muted: #9ca3af;
+  --app-muted-fg: #a1a1aa;
+  --app-border: #3d3a38;
+  --app-sidebar: #231f20;
+  --app-sidebar-fg: #f4f4f5;
+  --app-sidebar-border: #3d3a38;
+  --app-sidebar-accent: #d4af37;
+  --app-chart-1: #3b82f6;
+  --app-chart-2: #60a5fa;
+  --app-chart-3: #93c5fd;
+  --app-ring: #d4af37;
+}
+
+@theme inline {
+  --color-background: var(--app-bg);
+  --color-foreground: var(--app-fg);
+  --color-primary: var(--app-primary);
+  --color-primary-foreground: var(--app-primary-fg);
+  --color-secondary: var(--app-secondary);
+  --color-secondary-foreground: var(--app-secondary-fg);
+  --color-cta: var(--app-cta);
+  --color-cta-foreground: var(--app-cta-fg);
+  --color-card: var(--app-card);
+  --color-muted: var(--app-muted);
+  --color-muted-foreground: var(--app-muted-fg);
+  --color-border: var(--app-border);
+  --color-sidebar: var(--app-sidebar);
+  --color-sidebar-foreground: var(--app-sidebar-fg);
+  --color-sidebar-border: var(--app-sidebar-border);
+  --color-sidebar-accent: var(--app-sidebar-accent);
+  --color-chart-1: var(--app-chart-1);
+  --color-chart-2: var(--app-chart-2);
+  --color-chart-3: var(--app-chart-3);
+  --color-ring: var(--app-ring);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+body {
+  @apply font-sans antialiased bg-background text-foreground;
+}
+
+/* Per-business dashboard themes — override host vars so utilities resolve at paint time */
+.dashboard-theme-root[data-dashboard-theme="gold"] {
+  --app-bg: #e8eaef;
+  --app-fg: #111827;
+  --app-primary: #c9a227;
+  --app-primary-fg: #1a1a1a;
+  --app-secondary: #64748b;
+  --app-secondary-fg: #f8fafc;
+  --app-cta: #5c5248;
+  --app-cta-fg: #ffffff;
+  --app-card: #ffffff;
+  --app-muted: #94a3b8;
+  --app-muted-fg: #64748b;
+  --app-border: #e2e8f0;
+  --app-sidebar: #0f172a;
+  --app-sidebar-fg: #e2e8f0;
+  --app-sidebar-border: #1e293b;
+  --app-sidebar-accent: #60a5fa;
+  --app-chart-1: #3b82f6;
+  --app-chart-2: #60a5fa;
+  --app-chart-3: #93c5fd;
+  --app-ring: #c9a227;
+}
+
+.dashboard-theme-root[data-dashboard-theme="emerald"] {
+  --app-bg: #eef2f0;
+  --app-fg: #0f172a;
+  --app-primary: #166534;
+  --app-primary-fg: #f0fdf4;
+  --app-secondary: #3f6212;
+  --app-secondary-fg: #ecfccb;
+  --app-cta: #14532d;
+  --app-cta-fg: #f0fdf4;
+  --app-card: #ffffff;
+  --app-muted: #86a89a;
+  --app-muted-fg: #475569;
+  --app-border: #d8e4dc;
+  --app-sidebar: #0c1a14;
+  --app-sidebar-fg: #e8f5ef;
+  --app-sidebar-border: #1a3328;
+  --app-sidebar-accent: #22c55e;
+  --app-chart-1: #15803d;
+  --app-chart-2: #22c55e;
+  --app-chart-3: #86efac;
+  --app-ring: #166534;
+}
+
+/* Skip dark-mode automatic flip until all routes use semantic tokens. */

@@ -1,0 +1,32 @@
+# Python 3.13–compatible versions (older pydantic/psycopg2-binary fail on 3.13)
+fastapi>=0.115.0
+uvicorn>=0.24.0
+python-multipart>=0.0.6
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-dotenv==1.0.0
+# 2.0.36+ required for Python 3.13 (TypingOnly / __firstlineno__ fix)
+sqlalchemy>=2.0.36
+# PostgreSQL: use psycopg (v3) for Python 3.13; psycopg2-binary has no 3.13 wheel
+psycopg[binary]>=3.2.0
+alembic==1.12.1
+pydantic[email]>=2.10.0
+pydantic-settings>=2.0.0
+email-validator>=2.0.0
+google-auth-oauthlib==1.1.0
+google-auth-httplib2==0.1.1
+google-api-python-client==2.104.0
+langchain>=0.3.0
+openai>=1.3.0
+python-jose==3.3.0
+# Calendar: Outlook (Graph) uses httpx; Apple/CalDAV uses caldav
+caldav>=1.3.0
+icalendar>=5.0.0
+# Background jobs
+celery[redis]>=5.3.0
+redis>=5.0.0
+# Testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+httpx>=0.24.0

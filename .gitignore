@@ -1,0 +1,43 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+.ruff_cache/
+
+# Env & secrets (never commit runtime env files)
+.env
+.env.*
+!.env.example
+cloud-run.env
+cloud-run-backend.env
+
+# Local / runtime artifacts
+*.db
+celerybeat-schedule
+celerybeat-schedule.*
+
+# Nested app repo — keep one monorepo
+# (if frontend/.git exists, delete it locally so frontend is tracked as files)
+
+# Next.js / Node (frontend)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# OS & IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+.cursor/

@@ -1,0 +1,37 @@
+# Ignore files not needed for Cloud Build (reduces upload size and time).
+# Backend
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+*.egg-info/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Frontend (Docker does npm ci anyway)
+frontend/node_modules/
+frontend/.next/
+
+# Git and IDE
+.git/
+.gitignore
+.cursor/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docs and misc (not needed for image build)
+docs/
+*.md
+!frontend/README.md
+
+# Backend tests and scripts (not needed for frontend build)
+tests/
+scripts/
+cloud-run.env

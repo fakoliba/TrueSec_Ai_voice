@@ -1,0 +1,32 @@
+# Git and IDE
+.git
+.gitignore
+.venv
+venv
+env
+*.pyc
+__pycache__
+.cursor
+.idea
+.vscode
+
+# Local env and secrets
+.env
+.env.local
+.env.*.local
+
+# Tests and docs (not needed in image)
+tests
+docs
+*.md
+!README.md
+
+# Frontend (deploy separately)
+frontend
+
+# Misc
+.DS_Store
+*.log
+.pytest_cache
+.coverage
+htmlcov
