@@ -6,6 +6,7 @@ import {
   questionTypes,
   slugifyFieldId,
 } from "@/lib/intakeQuestionsHelpers";
+import { cn, inputClassName } from "@/lib/utils";
 
 type Props = {
   value: IntakeQuestion[];
@@ -30,6 +31,9 @@ function updateAt(arr: IntakeQuestion[], index: number, patch: Partial<IntakeQue
   next[index] = { ...next[index], ...patch };
   return next;
 }
+
+const fieldInputClass = cn(inputClassName, "py-2 text-sm");
+const fieldSelectClass = cn(fieldInputClass, "pr-8");
 
 export function IntakeQuestionsEditor({ value, onChange }: Props) {
   const types = questionTypes();
@@ -64,25 +68,25 @@ export function IntakeQuestionsEditor({ value, onChange }: Props) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {value.map((q, i) => (
         <div
           key={i}
-          className="space-y-3 rounded-lg border border-border bg-background/50 p-4"
+          className="rounded-xl border border-border bg-[#f8fafc] p-4 shadow-sm sm:p-5"
         >
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="min-w-[180px] flex-1">
-              <label className="block text-xs font-medium text-muted-foreground">Name</label>
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7.5rem_auto] sm:items-end">
+            <div>
+              <label className="dashboard-hint block text-xs font-medium">Name</label>
               <input
                 value={q.label}
                 onChange={(e) => onChange(updateAt(value, i, { label: e.target.value }))}
                 onBlur={() => syncFieldIdFromLabel(i)}
-                className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground"
+                className={cn(fieldInputClass, "mt-1")}
                 placeholder="e.g. First name"
               />
             </div>
-            <div className="w-36">
-              <label className="block text-xs font-medium text-muted-foreground">Type</label>
+            <div>
+              <label className="dashboard-hint block text-xs font-medium">Type</label>
               <select
                 value={q.type}
                 onChange={(e) => {
@@ -91,7 +95,7 @@ export function IntakeQuestionsEditor({ value, onChange }: Props) {
                   if (type !== "select") patch.options = undefined;
                   onChange(updateAt(value, i, patch));
                 }}
-                className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground"
+                className={cn(fieldSelectClass, "mt-1")}
               >
                 {types.map((t) => (
                   <option key={t} value={t}>
@@ -100,31 +104,31 @@ export function IntakeQuestionsEditor({ value, onChange }: Props) {
                 ))}
               </select>
             </div>
-            <label className="flex items-center gap-2 pb-1 text-sm text-foreground">
+            <label className="flex items-center justify-center gap-2 pb-2 text-sm text-foreground sm:justify-start sm:pb-2.5">
               <input
                 type="checkbox"
                 checked={Boolean(q.required)}
                 onChange={(e) => onChange(updateAt(value, i, { required: e.target.checked }))}
-                className="rounded border-border"
+                className="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
               />
               Required
             </label>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-muted-foreground">Placeholder (optional)</label>
+          <div className="mt-3 max-w-lg">
+            <label className="dashboard-hint block text-xs font-medium">Placeholder (optional)</label>
             <input
               value={q.placeholder ?? ""}
               onChange={(e) =>
                 onChange(updateAt(value, i, { placeholder: e.target.value || undefined }))
               }
-              className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground"
+              className={cn(fieldInputClass, "mt-1")}
             />
           </div>
 
           {q.type === "select" && (
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground">
+            <div className="mt-3">
+              <label className="dashboard-hint block text-xs font-medium">
                 Options (one per line)
               </label>
               <textarea
@@ -137,17 +141,17 @@ export function IntakeQuestionsEditor({ value, onChange }: Props) {
                   onChange(updateAt(value, i, { options }));
                 }}
                 rows={4}
-                className="mt-1 w-full rounded border border-border bg-background px-2 py-1.5 text-sm text-foreground"
+                className={cn(fieldInputClass, "mt-1 font-mono")}
               />
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap justify-center gap-2 border-t border-border/60 pt-4 sm:justify-start">
             <button
               type="button"
               onClick={() => move(i, -1)}
               disabled={i === 0}
-              className="rounded border border-border px-2 py-1 text-xs text-foreground disabled:opacity-40"
+              className="rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-medium text-foreground shadow-sm transition hover:border-primary/25 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Up
             </button>
@@ -155,14 +159,14 @@ export function IntakeQuestionsEditor({ value, onChange }: Props) {
               type="button"
               onClick={() => move(i, 1)}
               disabled={i === value.length - 1}
-              className="rounded border border-border px-2 py-1 text-xs text-foreground disabled:opacity-40"
+              className="rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-medium text-foreground shadow-sm transition hover:border-primary/25 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Down
             </button>
             <button
               type="button"
               onClick={() => removeAt(i)}
-              className="rounded border border-red-900/50 px-2 py-1 text-xs text-red-400"
+              className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100"
             >
               Remove
             </button>
@@ -172,7 +176,7 @@ export function IntakeQuestionsEditor({ value, onChange }: Props) {
       <button
         type="button"
         onClick={addField}
-        className="rounded-lg border border-dashed border-border px-4 py-2 text-sm text-foreground hover:bg-muted/30"
+        className="w-full rounded-xl border-2 border-dashed border-primary/30 bg-white px-4 py-3 text-sm font-medium text-primary transition hover:border-primary/50 hover:bg-primary/5"
       >
         + Add field
       </button>

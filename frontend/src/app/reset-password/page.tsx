@@ -4,6 +4,11 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { resetPassword } from "@/lib/api";
+import {
+  clearPasswordResetToken,
+  getPasswordResetToken,
+  setPasswordResetToken,
+} from "@/lib/auth-session";
 import { AuthShell } from "@/components/ui/AuthShell";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -12,7 +17,8 @@ import { inputClassName } from "@/lib/utils";
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") ?? "";
+  const tokenFromUrl = searchParams.get("token");
+  const [token, setToken] = useState("");
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -21,8 +27,16 @@ function ResetPasswordForm() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    if (!token) setError("Missing reset link. Please request a new one from the forgot password page.");
-  }, [token]);
+    const fromSession = getPasswordResetToken();
+    const resolved = fromSession || tokenFromUrl || "";
+    if (tokenFromUrl && !fromSession) {
+      setPasswordResetToken(tokenFromUrl);
+    }
+    setToken(resolved);
+    if (!resolved) {
+      setError("Missing reset link. Please request a new one from the forgot password page.");
+    }
+  }, [tokenFromUrl]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,6 +52,7 @@ function ResetPasswordForm() {
     setLoading(true);
     try {
       await resetPassword(token, password);
+      clearPasswordResetToken();
       setSuccess(true);
       setTimeout(() => router.push("/login"), 2000);
     } catch (err) {

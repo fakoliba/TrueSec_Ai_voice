@@ -7,6 +7,7 @@ import { addBusinessUser, listBusinessUsers } from "@/lib/api";
 import type { BusinessMember } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { BusinessPageShell } from "@/components/dashboard/BusinessPageShell";
 import { inputClassName, cn } from "@/lib/utils";
 
 export default function BusinessTeamPage() {
@@ -78,16 +79,12 @@ export default function BusinessTeamPage() {
   }
 
   return (
-    <div>
-      <Link href={`/dashboard/${id}`} className="mb-4 inline-block text-sm font-medium text-primary hover:underline">
-        ← Back to overview
-      </Link>
-      <h1 className="text-xl font-bold tracking-tight text-foreground">Team & users</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        View members and add existing or new users to this business.
-      </p>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-[2fr,1.5fr]">
+    <BusinessPageShell
+      section="Team & users"
+      title="Team & users"
+      description="View members and add existing or new users to this business."
+    >
+      <div className="grid gap-6 lg:grid-cols-[2fr,1.5fr]">
         <Card>
           <h2 className="text-sm font-semibold text-foreground">Team members</h2>
           {membersLoading ? (
@@ -221,6 +218,6 @@ export default function BusinessTeamPage() {
           </form>
         </Card>
       </div>
-    </div>
+    </BusinessPageShell>
   );
 }

@@ -8,16 +8,16 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variants: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary:
-    "bg-cta text-cta-foreground shadow-sm hover:bg-cta/90 disabled:hover:bg-cta",
+    "bg-cta text-cta-foreground shadow-sm hover:bg-cta/90 hover:shadow-md hover:-translate-y-px active:translate-y-0 disabled:hover:translate-y-0 disabled:hover:bg-cta disabled:hover:shadow-sm transition-all duration-200 ease-out",
   secondary:
-    "border border-secondary bg-secondary/25 text-secondary-foreground shadow-sm hover:bg-secondary/45 disabled:hover:bg-secondary/25",
-  ghost: "text-muted-foreground hover:bg-card hover:text-foreground",
-  danger: "bg-red-600 text-white shadow-sm hover:bg-red-700 disabled:hover:bg-red-600",
+    "border border-border bg-card text-foreground shadow-sm hover:border-primary/25 hover:bg-background hover:shadow-md disabled:hover:shadow-sm transition-all duration-200 ease-out",
+  ghost: "text-muted-foreground hover:bg-background hover:text-foreground transition-colors duration-200",
+  danger: "bg-red-600 text-white shadow-sm hover:bg-red-700 hover:shadow-md disabled:hover:bg-red-600 transition-all duration-200",
 };
 
 const sizes: Record<NonNullable<ButtonProps["size"]>, string> = {
-  sm: "rounded-lg px-3 py-1.5 text-sm",
-  md: "rounded-xl px-4 py-2.5 text-sm font-medium",
+  sm: "rounded-[12px] px-3.5 py-2 text-sm font-medium",
+  md: "rounded-[12px] px-5 py-2.5 text-sm font-semibold",
 };
 
 /** Use on `<Link>` for primary/secondary styles that match `<Button>`. */
@@ -26,7 +26,7 @@ export function buttonClasses(
   size: NonNullable<ButtonProps["size"]> = "md",
 ) {
   return cn(
-    "inline-flex items-center justify-center transition-colors",
+    "inline-flex items-center justify-center",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     variants[variant],
     sizes[size],
@@ -44,7 +44,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        "inline-flex items-center justify-center transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         variants[variant],
         sizes[size],

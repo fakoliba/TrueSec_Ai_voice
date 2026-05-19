@@ -10,6 +10,10 @@ import {
 } from "@/lib/api";
 import type { CallLog, Conversation, LatencyMetrics } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
+import { BusinessPageShell } from "@/components/dashboard/BusinessPageShell";
+import { LatencySparkline } from "@/components/dashboard/LatencySparkline";
+import { PhiReveal } from "@/components/security/PhiReveal";
+import { truncatePhiText } from "@/lib/phi-display";
 import { cn } from "@/lib/utils";
 
 function transcriptPreview(transcript: unknown): string {
@@ -25,38 +29,23 @@ function transcriptPreview(transcript: unknown): string {
 
 function statusBadgeClass(status: string) {
   const s = status.toLowerCase();
-  if (s.includes("progress") || s.includes("ring") || s === "in-progress")
-    return "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40";
-  if (s.includes("complete") || s.includes("end") || s === "completed")
-    return "bg-primary/20 text-primary ring-1 ring-primary/30";
-  if (s.includes("fail") || s.includes("busy")) return "bg-red-500/20 text-red-300 ring-1 ring-red-500/30";
-  return "bg-muted/30 text-muted-foreground ring-1 ring-border";
+  if (s.includes("progress") || s.includes("ring") || s === "in-progress") {
+    return "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200";
+  }
+  if (s.includes("complete") || s.includes("end") || s === "completed") {
+    return "bg-primary/15 text-primary ring-1 ring-primary/25";
+  }
+  if (s.includes("fail") || s.includes("busy")) {
+    return "bg-red-50 text-red-700 ring-1 ring-red-200";
+  }
+  return "bg-muted/40 text-muted-foreground ring-1 ring-border";
 }
 
-function LatencySparkline({ samples }: { samples: LatencyMetrics["samples"] }) {
-  const w = 120;
-  const h = 44;
-  const pad = 4;
-  if (samples.length === 0) {
-    return (
-      <p className="text-[11px] text-muted-foreground">No samples yet. Use the dashboard to generate API traffic.</p>
-    );
-  }
-  const vals = samples.map((s) => s.duration_ms);
-  const min = Math.min(...vals, 0);
-  const max = Math.max(...vals, min + 1e-6);
-  const range = max - min;
-  const points = vals
-    .map((v, i) => {
-      const x = pad + (i / Math.max(vals.length - 1, 1)) * (w - 2 * pad);
-      const y = pad + (1 - (v - min) / range) * (h - 2 * pad);
-      return `${x},${y}`;
-    })
-    .join(" ");
+function EmptyBlock({ message }: { message: string }) {
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full text-primary/85" aria-hidden>
-      <polyline fill="none" stroke="currentColor" strokeWidth="1.5" points={points} vectorEffect="non-scaling-stroke" />
-    </svg>
+    <div className="flex min-h-[120px] flex-col items-center justify-center px-4 py-8 text-center">
+      <p className="text-sm text-muted-foreground">{message}</p>
+    </div>
   );
 }
 
@@ -87,7 +76,10 @@ export default function BusinessActivityPage() {
       .catch((e: unknown) =>
         setLatencyError(e instanceof Error ? e.message : "Could not load latency metrics"),
       );
-    Promise.all([listBusinessCallLogs(Number(id), { limit: 50 }), listBusinessConversations(Number(id), { limit: 50 })])
+    Promise.all([
+      listBusinessCallLogs(Number(id), { limit: 50 }),
+      listBusinessConversations(Number(id), { limit: 50 }),
+    ])
       .then(([logs, convs]) => {
         setCallLogs(logs);
         setConversations(convs);
@@ -111,45 +103,37 @@ export default function BusinessActivityPage() {
   const selectedLog = callLogs.find((l) => l.id === selectedId) ?? null;
 
   return (
-    <div>
-      <Link
-        href={`/dashboard/${id}`}
-        className="mb-4 inline-block text-sm font-medium text-primary hover:underline"
-      >
-        ← Back to overview
-      </Link>
-
-      <div className="mb-6">
-        <h1 className="text-xl font-bold tracking-tight text-foreground">Call activity &amp; conversations</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Voice calls and AI conversations for this workspace. Select a call to view insights.
-        </p>
-      </div>
-
+    <BusinessPageShell
+      section="Call activity"
+      title="Call activity & conversations"
+      description="Voice calls and AI conversations for this workspace. Select a call to view insights."
+    >
       {loading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <p className="text-sm text-muted-foreground">Loading activity…</p>
+        </div>
       ) : (
-        <div className="grid gap-6 xl:grid-cols-12">
-          {/* Left: analytics */}
-          <div className="space-y-4 xl:col-span-3">
-            <Card className="p-4">
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Agent performance
-              </h2>
-              <p className="mt-1 text-[11px] text-muted-foreground">Calls by status (recent)</p>
-              <div className="mt-4 space-y-2">
+        <div className="activity-dashboard space-y-6">
+          {/* Analytics row */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="flex flex-col p-5 sm:p-6">
+              <h2 className="text-sm font-semibold text-foreground">Agent performance</h2>
+              <p className="mt-1 text-center text-xs text-muted-foreground sm:text-left">
+                Calls by status (recent)
+              </p>
+              <div className="mt-5 flex flex-1 flex-col justify-center space-y-3">
                 {statusCounts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No call data yet.</p>
+                  <EmptyBlock message="No call data yet." />
                 ) : (
                   statusCounts.slice(0, 6).map(([label, count]) => (
-                    <div key={label}>
-                      <div className="mb-0.5 flex justify-between text-xs text-muted-foreground">
+                    <div key={label} className="w-full max-w-md mx-auto sm:mx-0">
+                      <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                         <span className="truncate capitalize">{label}</span>
-                        <span>{count}</span>
+                        <span className="font-medium text-foreground">{count}</span>
                       </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-background ring-1 ring-border">
+                      <div className="h-2 overflow-hidden rounded-full bg-[#f1f5f9]">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-secondary to-primary"
+                          className="h-full rounded-full bg-gradient-to-r from-chart-3 to-chart-1"
                           style={{ width: `${Math.min(100, (count / maxStatus) * 100)}%` }}
                         />
                       </div>
@@ -159,182 +143,227 @@ export default function BusinessActivityPage() {
               </div>
             </Card>
 
-            <Card className="p-4">
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                System latency
-              </h2>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Recent API request times for this workspace (server middleware, in-memory).
+            <Card className="flex flex-col p-5 sm:p-6">
+              <h2 className="text-sm font-semibold text-foreground">System latency</h2>
+              <p className="mt-1 text-center text-xs text-muted-foreground sm:text-left">
+                Recent API request times (server middleware, in-memory).
               </p>
               {latencyError ? (
-                <p className="mt-3 text-[11px] text-amber-400/90">{latencyError}</p>
+                <p className="mt-4 text-center text-xs text-red-600">{latencyError}</p>
               ) : latencyMetrics ? (
-                <>
-                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
-                    <span>avg {latencyMetrics.avg_ms != null ? `${latencyMetrics.avg_ms} ms` : "—"}</span>
-                    <span>p50 {latencyMetrics.p50_ms != null ? `${latencyMetrics.p50_ms} ms` : "—"}</span>
-                    <span>p95 {latencyMetrics.p95_ms != null ? `${latencyMetrics.p95_ms} ms` : "—"}</span>
-                    <span>n={latencyMetrics.count}</span>
+                <div className="mt-4 flex flex-1 flex-col items-center justify-center">
+                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    <span>
+                      avg{" "}
+                      <strong className="text-foreground">
+                        {latencyMetrics.avg_ms != null ? `${latencyMetrics.avg_ms} ms` : "—"}
+                      </strong>
+                    </span>
+                    <span>
+                      p50{" "}
+                      <strong className="text-foreground">
+                        {latencyMetrics.p50_ms != null ? `${latencyMetrics.p50_ms} ms` : "—"}
+                      </strong>
+                    </span>
+                    <span>
+                      p95{" "}
+                      <strong className="text-foreground">
+                        {latencyMetrics.p95_ms != null ? `${latencyMetrics.p95_ms} ms` : "—"}
+                      </strong>
+                    </span>
+                    <span>
+                      n=<strong className="text-foreground">{latencyMetrics.count}</strong>
+                    </span>
                   </div>
-                  <div className="mt-3 h-24 rounded-lg border border-border bg-background/80 p-2">
+                  <div className="mt-4 flex w-full justify-center rounded-xl border border-border bg-[#f8fafc] p-4">
                     <LatencySparkline samples={latencyMetrics.samples} />
                   </div>
-                </>
+                </div>
               ) : (
-                <p className="mt-3 text-[11px] text-muted-foreground">Loading metrics…</p>
+                <EmptyBlock message="Loading metrics…" />
               )}
             </Card>
           </div>
 
-          {/* Center: call list */}
-          <div className="min-w-0 space-y-3 xl:col-span-6">
-            <h2 className="text-sm font-semibold text-foreground">Appointment &amp; voice calls</h2>
-            {callLogs.length === 0 ? (
-              <Card className="p-6 text-sm text-muted-foreground">No call logs yet.</Card>
-            ) : (
-              callLogs.map((log) => (
-                <button
-                  key={log.id}
-                  type="button"
-                  onClick={() => setSelectedId(log.id)}
-                  className={cn(
-                    "w-full rounded-2xl border p-4 text-left transition hover:border-primary/40",
-                    selectedId === log.id
-                      ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20"
-                      : "border-border bg-card ring-1 ring-border/20",
-                  )}
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <p className="font-mono text-sm font-semibold text-foreground">{log.phone_number}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {new Date(log.created_at).toLocaleString()} · {log.direction} ·{" "}
-                        {log.duration_seconds > 0 ? `${log.duration_seconds}s` : "—"}
-                      </p>
-                    </div>
-                    <span
-                      className={cn(
-                        "rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize",
-                        statusBadgeClass(log.status),
-                      )}
-                    >
-                      {log.status}
-                    </span>
-                  </div>
-                  {log.intent && (
-                    <span className="mt-2 inline-block rounded-md bg-secondary/25 px-2 py-0.5 text-xs font-medium text-primary">
-                      {log.intent}
-                    </span>
-                  )}
-                  {log.ai_summary && (
-                    <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{log.ai_summary}</p>
-                  )}
-                  <div
-                    className="mt-3 flex items-center justify-between gap-2 border-t border-border/60 pt-3"
-                    onClick={(e) => e.stopPropagation()}
-                    role="presentation"
-                  >
-                    {log.conversation_id ? (
-                      <Link
-                        href={`/dashboard/${id}/conversations/${log.conversation_id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-xs font-medium text-primary hover:underline"
-                      >
-                        View AI conversation
-                      </Link>
-                    ) : (
-                      <span className="text-[11px] text-muted-foreground">No linked conversation</span>
-                    )}
-                  </div>
-                </button>
-              ))
-            )}
-
-            <Card className="p-4">
-              <h3 className="text-sm font-semibold text-foreground">Conversations</h3>
-              {conversations.length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">No conversations yet.</p>
-              ) : (
-                <ul className="mt-3 space-y-2">
-                  {conversations.slice(0, 8).map((c) => (
-                    <li
-                      key={c.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border py-2 px-3 text-sm"
-                    >
-                      <span className="text-foreground">
-                        {c.channel} · {new Date(c.updated_at).toLocaleString()}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {Array.isArray(c.messages) ? c.messages.length : 0} messages
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Card>
-          </div>
-
-          {/* Right: insights */}
-          <div className="xl:col-span-3">
-            <Card className="sticky top-20 p-4">
-              <h2 className="text-sm font-semibold text-foreground">AI insights &amp; actions</h2>
-              {!selectedLog ? (
-                <p className="mt-3 text-sm text-muted-foreground">Select a call from the list.</p>
-              ) : (
-                <>
-                  <div className="mt-3 border-b border-border pb-3">
-                    {selectedLog.conversation_id ? (
-                      <Link
-                        href={`/dashboard/${id}/conversations/${selectedLog.conversation_id}`}
-                        className="text-sm font-medium text-primary hover:underline"
-                      >
-                        View full AI conversation transcript
-                      </Link>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">No linked AI conversation for this call.</p>
-                    )}
-                  </div>
-
-                  <div className="mt-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Sentiment</p>
-                    <div className="mt-2 flex items-center justify-center">
-                      <div
-                        className="relative h-16 w-32 rounded-t-full border border-primary/40 bg-gradient-to-t from-secondary/40 to-primary/20"
-                        aria-hidden
-                      >
-                        <div className="absolute bottom-1 left-1/2 h-8 w-1 -translate-x-1/2 rounded-full bg-primary shadow-[0_0_14px_rgba(212,175,55,0.55)]" />
-                      </div>
-                    </div>
-                    <p className="mt-1 text-center text-[11px] text-muted-foreground">Estimated (demo)</p>
-                  </div>
-
-                  {selectedLog.ai_summary && (
-                    <div className="mt-4">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Summary</p>
-                      <p className="mt-1 text-sm text-foreground">{selectedLog.ai_summary}</p>
-                    </div>
-                  )}
-
-                  {transcriptPreview(selectedLog.transcript) && (
-                    <details className="mt-4">
-                      <summary className="cursor-pointer text-xs font-medium text-primary hover:underline">
-                        Transcript preview
-                      </summary>
-                      <p className="mt-2 max-h-32 overflow-y-auto rounded-lg border border-border bg-background p-2 font-mono text-[11px] text-muted-foreground">
-                        {transcriptPreview(selectedLog.transcript)}
-                      </p>
-                    </details>
-                  )}
-
-                  <p className="mt-6 text-[11px] text-muted-foreground">
-                    Team help chat is paused until in-app help (RAG) is enabled.
+          {/* Calls + insights */}
+          <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
+            <div className="space-y-6 lg:col-span-7">
+              <Card className="p-5 sm:p-6">
+                <div className="border-b border-border pb-4 text-center sm:text-left">
+                  <h2 className="text-base font-semibold text-foreground">Appointment & voice calls</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {callLogs.length} call{callLogs.length === 1 ? "" : "s"} recorded
                   </p>
-                </>
-              )}
-            </Card>
+                </div>
+
+                {callLogs.length === 0 ? (
+                  <EmptyBlock message="No call logs yet. Calls will appear here when customers reach your voice line." />
+                ) : (
+                  <ul className="mt-4 space-y-3">
+                    {callLogs.map((log) => (
+                      <li key={log.id}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedId(log.id)}
+                          className={cn(
+                            "w-full rounded-xl border p-4 text-left transition-all duration-200",
+                            selectedId === log.id
+                              ? "border-primary/40 bg-primary/5 shadow-sm ring-2 ring-primary/20"
+                              : "border-border bg-white hover:border-primary/25 hover:shadow-sm",
+                          )}
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1 text-center sm:text-left">
+                              <p className="text-sm font-semibold text-foreground">
+                                <PhiReveal value={log.phone_number} kind="phone" />
+                              </p>
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                {new Date(log.created_at).toLocaleString()} · {log.direction} ·{" "}
+                                {log.duration_seconds > 0 ? `${log.duration_seconds}s` : "—"}
+                              </p>
+                            </div>
+                            <span
+                              className={cn(
+                                "shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize",
+                                statusBadgeClass(log.status),
+                              )}
+                            >
+                              {log.status}
+                            </span>
+                          </div>
+                          {log.intent && (
+                            <span className="mt-2 inline-block rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                              {log.intent}
+                            </span>
+                          )}
+                          {log.ai_summary && (
+                            <p className="mt-2 line-clamp-2 text-center text-xs text-muted-foreground sm:text-left">
+                              {log.ai_summary}
+                            </p>
+                          )}
+                          <div
+                            className="mt-3 flex justify-center border-t border-border/60 pt-3 sm:justify-start"
+                            onClick={(e) => e.stopPropagation()}
+                            role="presentation"
+                          >
+                            {log.conversation_id ? (
+                              <Link
+                                href={`/dashboard/${id}/conversations/${log.conversation_id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-xs font-medium text-primary hover:underline"
+                              >
+                                View AI conversation →
+                              </Link>
+                            ) : (
+                              <span className="text-[11px] text-muted-foreground">
+                                No linked conversation
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+
+              <Card className="p-5 sm:p-6">
+                <h2 className="text-center text-base font-semibold text-foreground sm:text-left">
+                  Conversations
+                </h2>
+                {conversations.length === 0 ? (
+                  <EmptyBlock message="No conversations yet." />
+                ) : (
+                  <ul className="mt-4 space-y-2">
+                    {conversations.slice(0, 8).map((c) => (
+                      <li
+                        key={c.id}
+                        className="flex flex-col items-center justify-between gap-2 rounded-xl border border-border bg-[#f8fafc] px-4 py-3 text-sm sm:flex-row"
+                      >
+                        <span className="text-center font-medium text-foreground sm:text-left">
+                          {c.channel} · {new Date(c.updated_at).toLocaleString()}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {Array.isArray(c.messages) ? c.messages.length : 0} messages
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+            </div>
+
+            <div className="lg:col-span-5">
+              <Card className="p-5 sm:sticky sm:top-24 sm:p-6">
+                <h2 className="text-center text-base font-semibold text-foreground sm:text-left">
+                  AI insights & actions
+                </h2>
+                {!selectedLog ? (
+                  <EmptyBlock message="Select a call from the list to view insights." />
+                ) : (
+                  <div className="mt-4 space-y-5">
+                    <div className="rounded-xl border border-border bg-[#f8fafc] p-4 text-center sm:text-left">
+                      {selectedLog.conversation_id ? (
+                        <Link
+                          href={`/dashboard/${id}/conversations/${selectedLog.conversation_id}`}
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          View full AI conversation transcript →
+                        </Link>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          No linked AI conversation for this call.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="text-center">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Sentiment
+                      </p>
+                      <div className="mt-3 flex justify-center">
+                        <div
+                          className="relative h-16 w-32 rounded-t-full border border-primary/30 bg-gradient-to-t from-[#dcfce7] to-[#f0fdf4]"
+                          aria-hidden
+                        >
+                          <div className="absolute bottom-1 left-1/2 h-8 w-1 -translate-x-1/2 rounded-full bg-primary" />
+                        </div>
+                      </div>
+                      <p className="mt-1 text-[11px] text-muted-foreground">Estimated (demo)</p>
+                    </div>
+
+                    {selectedLog.ai_summary && (
+                      <div className="rounded-xl border border-border bg-white p-4 text-center sm:text-left">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Summary
+                        </p>
+                        <p className="mt-2 text-sm leading-relaxed text-foreground">
+                          {selectedLog.ai_summary}
+                        </p>
+                      </div>
+                    )}
+
+                    {transcriptPreview(selectedLog.transcript) && (
+                      <details className="rounded-xl border border-border bg-white p-4">
+                        <summary className="cursor-pointer text-center text-xs font-medium text-primary hover:underline sm:text-left">
+                          Transcript preview
+                        </summary>
+                        <p className="mt-3 max-h-32 overflow-y-auto rounded-lg border border-border bg-[#f8fafc] p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
+                          {transcriptPreview(selectedLog.transcript)}
+                        </p>
+                      </details>
+                    )}
+
+                    <p className="text-center text-[11px] text-muted-foreground sm:text-left">
+                      Team help chat is paused until in-app help (RAG) is enabled.
+                    </p>
+                  </div>
+                )}
+              </Card>
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </BusinessPageShell>
   );
 }

@@ -14,6 +14,8 @@ import type { DashboardTheme } from "@/lib/api";
 
 type DashboardThemeContextValue = {
   theme: DashboardTheme;
+  /** Apply theme immediately (e.g. after save); still call refreshTheme to sync with API. */
+  applyTheme: (next: DashboardTheme) => void;
   refreshTheme: () => Promise<void>;
 };
 
@@ -51,15 +53,19 @@ export function DashboardThemeProvider({
     void refreshTheme();
   }, [refreshTheme]);
 
+  const applyTheme = useCallback((next: DashboardTheme) => {
+    setTheme(next === "emerald" ? "emerald" : "gold");
+  }, []);
+
   const value = useMemo(
-    () => ({ theme, refreshTheme }),
-    [theme, refreshTheme],
+    () => ({ theme, applyTheme, refreshTheme }),
+    [theme, applyTheme, refreshTheme],
   );
 
   return (
     <DashboardThemeContext.Provider value={value}>
       <div
-        className="dashboard-theme-root flex min-h-full w-full flex-1 flex-col bg-background text-foreground"
+        className="dashboard-theme-root flex min-h-full w-full flex-1 flex-col bg-background text-foreground md:min-h-[calc(100vh-3.75rem)]"
         data-dashboard-theme={theme}
       >
         {children}

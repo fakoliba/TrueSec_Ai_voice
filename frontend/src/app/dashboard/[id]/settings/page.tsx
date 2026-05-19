@@ -24,6 +24,7 @@ import type {
   UserProfile,
 } from "@/lib/api";
 import { buttonClasses } from "@/components/ui/Button";
+import { BusinessPageShell } from "@/components/dashboard/BusinessPageShell";
 import { useDashboardTheme } from "@/components/DashboardThemeProvider";
 
 const WEEKDAYS = [
@@ -103,7 +104,7 @@ export default function BusinessSettingsPage() {
   const [themeSaving, setThemeSaving] = useState(false);
   const [themeMessage, setThemeMessage] = useState("");
 
-  const { refreshTheme } = useDashboardTheme();
+  const { applyTheme, refreshTheme } = useDashboardTheme();
 
   const loadSettings = useCallback(async () => {
     setSettingsLoading(true);
@@ -235,6 +236,8 @@ export default function BusinessSettingsPage() {
     try {
       const updated = await updateBusinessSettings(businessId, { dashboard_theme: dashboardTheme });
       setSettings(updated);
+      const saved = updated.dashboard_theme === "emerald" ? "emerald" : "gold";
+      applyTheme(saved);
       await refreshTheme();
       setThemeMessage("Appearance saved.");
     } catch (err) {
@@ -323,21 +326,12 @@ export default function BusinessSettingsPage() {
   }
 
   return (
-    <div>
-      <Link
-        href={`/dashboard/${id}`}
-        className="mb-4 inline-block text-sm text-muted-foreground hover:underline"
-      >
-        ← Back to business
-      </Link>
-
-      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Hours, voice handoff, services, and intake — edit business details when needed.
-          </p>
-        </div>
+    <BusinessPageShell
+      section="Settings"
+      title="Settings"
+      description="Hours, voice handoff, services, and intake — edit business details when needed."
+    >
+      <div className="mb-8 flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-center">
         <Link href={`/dashboard/${id}/edit`} className={buttonClasses("secondary", "md")}>
           Edit business
         </Link>
@@ -736,6 +730,6 @@ export default function BusinessSettingsPage() {
           )}
         </div>
       </div>
-    </div>
+    </BusinessPageShell>
   );
 }

@@ -9,7 +9,9 @@ export default function Home() {
     <AuthShell>
       <main className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <p className="text-sm font-medium uppercase tracking-wider text-primary">trueSecAI</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-[#071a3d]">
+            true<span className="text-[#d4af37]">Sec</span>.AI
+          </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Your AI front desk
           </h1>
@@ -34,12 +36,16 @@ export default function Home() {
             </a>
           </p>
         </Card>
-        <p className="mt-8 text-center text-xs text-muted-foreground">
-          API:{" "}
-          <code className="rounded-md bg-card px-2 py-1 font-mono text-[0.7rem] text-muted-foreground ring-1 ring-border">
-            {process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}
-          </code>
-        </p>
+        {process.env.NODE_ENV === "development" ? (
+          <p className="mt-8 text-center text-xs text-muted-foreground">
+            Dev API:{" "}
+            <code className="dashboard-inline-code">
+              {process.env.NEXT_PUBLIC_USE_API_PROXY === "false"
+                ? process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+                : "/api (proxied)"}
+            </code>
+          </p>
+        ) : null}
       </main>
     </AuthShell>
   );

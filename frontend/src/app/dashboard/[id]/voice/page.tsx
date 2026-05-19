@@ -13,6 +13,7 @@ import {
 import type { Business, BusinessSettings, VoiceOptionsApiResponse, VoicePresetItem } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { BusinessPageShell } from "@/components/dashboard/BusinessPageShell";
 import { cn } from "@/lib/utils";
 
 export default function BusinessVoicePage() {
@@ -134,27 +135,21 @@ export default function BusinessVoicePage() {
   const presets: VoicePresetItem[] = voiceOptions?.presets ?? [];
 
   return (
-    <div>
-      <Link
-        href={`/dashboard/${id}`}
-        className="mb-4 inline-block text-sm text-muted-foreground hover:underline"
-      >
-        ← Back to business
-      </Link>
-
-      <Card className="mb-6 p-6">
-        <h1 className="text-xl font-semibold text-foreground">Voice configuration</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Choose how your AI sounds on phone calls. Phone routing is configured by your platform admin.
-        </p>
-        <div className="mt-4 flex gap-2 text-sm text-muted-foreground">
+    <BusinessPageShell
+      section="Voice configuration"
+      title="Voice configuration"
+      description="Choose how your AI sounds on phone calls. Phone routing is configured by your platform admin."
+      contentClassName="max-w-3xl"
+    >
+      <Card className="mb-6">
+        <div className="dashboard-hint flex flex-wrap justify-center gap-2 text-sm sm:justify-start">
           <span className={wizardStep === 1 ? "font-semibold text-foreground" : ""}>1. Choose voice</span>
           <span>→</span>
-          <span className={wizardStep === 2 ? "font-semibold text-foreground" : ""}>2. Fine-tune &amp; test</span>
+          <span className={wizardStep === 2 ? "font-semibold text-foreground" : ""}>2. Fine-tune & test</span>
         </div>
       </Card>
 
-      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-4 text-center text-sm text-red-600 sm:text-left">{error}</p>}
 
       {loading ? (
         <p className="text-muted-foreground">Loading…</p>
@@ -179,13 +174,13 @@ export default function BusinessVoicePage() {
                     <div className="flex items-start justify-between gap-2">
                       <span className="font-medium text-foreground">{p.label}</span>
                       {p.recommended && (
-                        <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                        <span className="rounded-md bg-primary/12 px-2 py-0.5 text-xs font-medium text-primary">
                           Recommended
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{p.subtitle}</p>
-                    <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">
+                    <p className="dashboard-hint mt-1 text-sm">{p.subtitle}</p>
+                    <p className="mt-2 text-xs font-medium uppercase tracking-wide text-slate-500">
                       {p.provider === "elevenlabs" ? "Premium stack" : "Standard"}
                     </p>
                   </button>
@@ -193,7 +188,7 @@ export default function BusinessVoicePage() {
               </div>
 
               {!voiceOptions?.can_use_elevenlabs && (
-                <p className="mt-4 text-sm text-muted-foreground">
+                <p className="dashboard-hint mt-4 text-sm leading-relaxed">
                   Your plan uses OpenAI voices by default. Upgrade to <strong>basic</strong> or{" "}
                   <strong>premium</strong> with ElevenLabs configured on the server for additional premium
                   voices.
@@ -212,7 +207,7 @@ export default function BusinessVoicePage() {
             <Card className="p-6">
               <h2 className="text-lg font-semibold text-foreground">Preview &amp; fine-tune</h2>
 
-              <div className="mt-4 rounded-lg border border-border bg-muted/20 p-4">
+              <div className="mt-4 rounded-lg border border-border bg-[#f8fafc] p-4">
                 <p className="text-sm font-medium text-foreground">Sample script</p>
                 <p className="mt-2 text-sm text-foreground">{sampleText}</p>
               </div>
@@ -289,6 +284,6 @@ export default function BusinessVoicePage() {
           )}
         </div>
       )}
-    </div>
+    </BusinessPageShell>
   );
 }

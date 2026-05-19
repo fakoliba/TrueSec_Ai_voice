@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api";
+import { getAccessToken } from "@/lib/auth-session";
 import type { Business } from "@/lib/api";
+import { SidebarBrand } from "@/components/dashboard/SidebarBrand";
 
 const NAV_COLLAPSED_KEY = "dashboard-business-nav-collapsed";
 
@@ -117,7 +119,7 @@ function NavLinks({
   const pathname = usePathname() || "";
 
   return (
-    <ul className={`flex flex-col gap-1 ${collapsed ? "items-center" : ""}`}>
+    <ul className={`flex flex-col gap-1.5 ${collapsed ? "items-center" : ""}`}>
       {NAV_ITEMS.map((item) => {
         const href = item.href(businessId);
         const active = isActive(pathname, businessId, item);
@@ -174,7 +176,7 @@ export default function BusinessNav({ businessId }: { businessId: string }) {
   }, []);
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getAccessToken();
     if (!token) return;
     apiFetch(`/api/businesses/${businessId}`, { token })
       .then((res) => (res.ok ? res.json() : null))
@@ -213,17 +215,17 @@ export default function BusinessNav({ businessId }: { businessId: string }) {
   }, [open, close]);
 
   const linkClassExpanded = (active: boolean) =>
-    `block rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar ${
+    `block rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
       active
-        ? "bg-primary text-primary-foreground shadow-sm"
-        : "text-sidebar-foreground/80 hover:bg-white/10 hover:text-sidebar-foreground"
+        ? "text-white"
+        : "text-sidebar-foreground/85 hover:text-white"
     }`;
 
   const linkClassCollapsed = (active: boolean) =>
-    `flex items-center justify-center rounded-lg p-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar ${
+    `flex items-center justify-center rounded-xl p-2.5 text-sm font-medium transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
       active
-        ? "bg-primary text-primary-foreground shadow-sm"
-        : "text-sidebar-foreground/80 hover:bg-white/10 hover:text-sidebar-foreground"
+        ? "text-white"
+        : "text-sidebar-foreground/85 hover:text-white"
     }`;
 
   return (
@@ -250,16 +252,17 @@ export default function BusinessNav({ businessId }: { businessId: string }) {
       </div>
 
       <aside
-        className={`hidden min-h-[calc(100vh-3.5rem)] shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-out md:flex md:flex-col ${
-          navCollapsed ? "w-[3.25rem]" : "w-56"
+        className={`hidden shrink-0 self-stretch border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-out md:flex md:min-h-full md:flex-col ${
+          navCollapsed ? "w-[3.25rem]" : "w-64"
         }`}
         aria-label="Business navigation"
       >
         <div
-          className={`sticky top-14 flex max-h-[calc(100vh-3.5rem)] flex-col overflow-y-auto py-6 ${
+          className={`flex min-h-full flex-1 flex-col overflow-y-auto py-6 ${
             navCollapsed ? "items-center px-1" : "pl-4 pr-3"
           }`}
         >
+          <SidebarBrand collapsed={navCollapsed} />
           <div
             className={`mb-3 flex border-b border-sidebar-border pb-2 ${navCollapsed ? "w-full flex-col items-center gap-2" : "items-center gap-2"}`}
           >

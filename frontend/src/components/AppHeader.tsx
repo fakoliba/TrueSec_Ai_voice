@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
 import { getProfile, isSuperAdmin } from "@/lib/api";
+import { clearSession, getAccessToken } from "@/lib/auth-session";
 import type { UserProfile } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 export default function AppHeader() {
   const pathname = usePathname();
@@ -13,7 +14,7 @@ export default function AppHeader() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getAccessToken();
     if (!token) {
       setProfile(null);
       return;
@@ -24,52 +25,69 @@ export default function AppHeader() {
   }, [pathname]);
 
   function handleSignOut() {
-    if (typeof window !== "undefined") localStorage.removeItem("token");
+    clearSession();
     router.push("/");
     router.refresh();
   }
 
   const linkBase =
-    "text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md px-1 py-0.5";
-  const active = "text-primary";
-  const inactive = "text-muted-foreground hover:text-foreground";
+    "rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
+  const active = "bg-white/14 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)]";
+  const inactive = "text-sidebar-foreground/85 hover:bg-white/10 hover:text-white";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-card/95 shadow-sm backdrop-blur-md">
-      <div className="mx-auto flex h-14 w-full max-w-none items-center justify-between gap-4 px-4 sm:px-6">
-        <div className="flex items-center gap-8">
+    <header className="sticky top-0 z-30 border-b border-sidebar-border bg-sidebar text-sidebar-foreground shadow-md">
+      <div className="mx-auto flex h-[3.75rem] w-full max-w-none items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-6 sm:gap-8">
           <Link
             href="/dashboard"
-            className="text-sm font-bold tracking-tight text-foreground"
+            className="text-base font-semibold tracking-tight text-white transition-opacity hover:opacity-90"
           >
-            true<span className="text-primary">Sec</span>AI
+            true<span className="text-[#d4af37]">Sec</span>
+            <span className="font-normal text-white/95">.AI</span>
           </Link>
-          <nav className="flex items-center gap-1 sm:gap-2" aria-label="Main">
+          <nav className="flex items-center gap-0.5 sm:gap-1" aria-label="Main">
             <Link
               href="/dashboard"
-              className={`${linkBase} ${pathname === "/dashboard" ? active : inactive}`}
+              className={cn(linkBase, pathname === "/dashboard" ? active : inactive)}
             >
               Dashboard
             </Link>
             {isSuperAdmin(profile) && (
               <Link
                 href="/platform"
-                className={`${linkBase} ${pathname?.startsWith("/platform") ? active : inactive}`}
+                className={cn(
+                  linkBase,
+                  pathname?.startsWith("/platform") ? active : inactive,
+                )}
               >
                 Platform
               </Link>
             )}
             <Link
               href="/account"
-              className={`${linkBase} ${pathname?.startsWith("/account") ? active : inactive}`}
+              className={cn(linkBase, pathname?.startsWith("/account") ? active : inactive)}
             >
               Account
             </Link>
           </nav>
         </div>
-        <Button type="button" variant="ghost" size="sm" onClick={handleSignOut}>
-          Sign out
-        </Button>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span
+            className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-sm font-semibold text-white sm:flex"
+            aria-hidden={!profile}
+            title={profile?.full_name || profile?.email || "Account"}
+          >
+            {(profile?.full_name || profile?.email || "U").charAt(0).toUpperCase()}
+          </span>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-sidebar-foreground/90 transition-all duration-200 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     </header>
   );

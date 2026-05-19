@@ -66,12 +66,12 @@ export default function DashboardPage() {
   const allowCreate = canCreateBusiness(profile);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-6">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
       <ServiceHighlights />
 
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">My businesses</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">My businesses</h1>
           <p className="mt-1 text-sm text-muted-foreground">Open a business to manage calendars, team, and voice.</p>
         </div>
         {allowCreate ? (
@@ -85,7 +85,7 @@ export default function DashboardPage() {
         )}
       </div>
       {error && (
-        <p className="mb-4 rounded-lg border border-red-500/30 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>
+        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>
       )}
       {businesses.length === 0 && !error ? (
         <Card className="p-10 text-center text-muted-foreground">
@@ -110,7 +110,7 @@ export default function DashboardPage() {
             <li key={b.id}>
               <Link
                 href={`/dashboard/${b.id}`}
-                className="block rounded-2xl border border-border bg-card p-5 shadow-sm ring-1 ring-border/20 transition hover:border-primary/25 hover:shadow-md hover:shadow-primary/5"
+                className="dashboard-list-item ui-card block p-5 sm:p-6"
               >
                 <span className="font-semibold text-foreground">{b.name}</span>
                 {b.business_type && (

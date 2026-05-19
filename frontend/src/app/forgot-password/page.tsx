@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { forgotPassword } from "@/lib/api";
+import { setPasswordResetToken } from "@/lib/auth-session";
 import { AuthShell } from "@/components/ui/AuthShell";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -26,7 +27,8 @@ export default function ForgotPasswordPage() {
       const data = await forgotPassword(trimmed);
       setMessage(data.message);
       if (data.reset_token) {
-        router.push(`/reset-password?token=${encodeURIComponent(data.reset_token)}`);
+        setPasswordResetToken(data.reset_token);
+        router.push("/reset-password");
         return;
       }
     } catch (err) {

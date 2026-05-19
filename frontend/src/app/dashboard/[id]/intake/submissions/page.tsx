@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { listIntakeSubmissions } from "@/lib/api";
 import type { IntakeSubmissionWithFormName } from "@/lib/api";
+import { IntakeResponsesCell } from "@/components/intake/IntakeResponsesCell";
 
 export default function IntakeSubmissionsPage() {
   const params = useParams();
@@ -86,10 +87,8 @@ export default function IntakeSubmissionsPage() {
                   <td className="py-2 pr-4 text-muted-foreground">
                     {new Date(s.submitted_at).toLocaleString()}
                   </td>
-                  <td className="py-2 font-mono text-xs text-muted-foreground">
-                    <pre className="max-h-24 max-w-md overflow-auto whitespace-pre-wrap">
-                      {JSON.stringify(s.responses, null, 0)}
-                    </pre>
+                  <td className="py-2">
+                    <IntakeResponsesCell responses={s.responses} />
                   </td>
                 </tr>
               ))}

@@ -129,9 +129,12 @@ def forgot_password(
 ):
     """Request a password reset. If the email is registered, returns a one-time reset token (valid 1 hour). Use it on the reset-password page. For production, configure email and send the link instead of returning the token."""
     token = create_reset_token(db, payload.email)
-    if token:
-        return {"message": "If an account exists with that email, you can set a new password.", "reset_token": token}
-    return {"message": "If an account exists with that email, you can set a new password."}
+    msg = "If an account exists with that email, you can set a new password."
+    # HIPAA: never return reset secrets in API responses in production.
+    expose_reset = settings.EXPOSE_PASSWORD_RESET_TOKEN or settings.DEBUG
+    if token and expose_reset:
+        return {"message": msg, "reset_token": token}
+    return {"message": msg}
 
 
 @router.post("/reset-password")

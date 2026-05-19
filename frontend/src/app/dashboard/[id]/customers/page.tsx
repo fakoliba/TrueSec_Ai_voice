@@ -12,6 +12,8 @@ import {
 } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { BusinessPageShell } from "@/components/dashboard/BusinessPageShell";
+import { PhiReveal } from "@/components/security/PhiReveal";
 import { inputClassName, cn } from "@/lib/utils";
 
 export default function BusinessCustomersPage() {
@@ -107,23 +109,18 @@ export default function BusinessCustomersPage() {
   }
 
   return (
-    <div>
-      <Link href={`/dashboard/${id}`} className="mb-4 inline-block text-sm font-medium text-primary hover:underline">
-        ← Back to overview
-      </Link>
-      <h1 className="text-xl font-bold tracking-tight text-foreground">Customers</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Keep phone numbers on file so voice reschedule and cancel can find upcoming visits. Add manually or
-        import a CSV.
-      </p>
-
+    <BusinessPageShell
+      section="Customers"
+      title="Customers"
+      description="Keep phone numbers on file so voice reschedule and cancel can find upcoming visits. Add manually or import a CSV."
+    >
       {message && (
         <p className={cn("mt-3 text-sm", message.includes("Failed") || message.includes("warnings") ? "text-amber-600" : "text-muted-foreground")}>
           {message}
         </p>
       )}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,20rem)]">
         <Card>
           <h2 className="text-sm font-semibold text-foreground">Directory</h2>
           {loading ? (
@@ -140,8 +137,11 @@ export default function BusinessCustomersPage() {
                     <p className="font-medium text-foreground">
                       {c.first_name} {c.last_name}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {[c.phone, c.email].filter(Boolean).join(" · ") || "—"}
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                      {c.phone ? <PhiReveal value={c.phone} kind="phone" /> : null}
+                      {c.phone && c.email ? <span aria-hidden>·</span> : null}
+                      {c.email ? <PhiReveal value={c.email} kind="email" /> : null}
+                      {!c.phone && !c.email ? "—" : null}
                     </p>
                   </div>
                   <button
@@ -157,59 +157,67 @@ export default function BusinessCustomersPage() {
           )}
         </Card>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 lg:max-w-sm">
           <Card>
             <h2 className="text-sm font-semibold text-foreground">Add customer</h2>
-            <form onSubmit={(e) => void handleAdd(e)} className="mt-3 space-y-2">
+            <form onSubmit={(e) => void handleAdd(e)} className="mt-4 space-y-3">
               <input
-                className={inputClassName}
+                className={cn(inputClassName, "max-w-full")}
                 placeholder="First name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
               />
               <input
-                className={inputClassName}
+                className={cn(inputClassName, "max-w-full")}
                 placeholder="Last name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
               />
               <input
-                className={inputClassName}
+                className={cn(inputClassName, "max-w-full")}
                 placeholder="Phone (E.164 or local)"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
               <input
                 type="email"
-                className={inputClassName}
+                className={cn(inputClassName, "max-w-full")}
                 placeholder="Email (optional)"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              <Button type="submit" variant="primary" size="md" disabled={saving} className="w-full">
-                {saving ? "Saving…" : "Save customer"}
-              </Button>
+              <div className="pt-1">
+                <Button type="submit" variant="primary" size="md" disabled={saving}>
+                  {saving ? "Saving…" : "Save customer"}
+                </Button>
+              </div>
             </form>
           </Card>
 
           <Card>
             <h2 className="text-sm font-semibold text-foreground">Import CSV</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Headers: <code className="rounded bg-muted px-1">first_name</code>,{" "}
-              <code className="rounded bg-muted px-1">last_name</code>,{" "}
-              <code className="rounded bg-muted px-1">phone</code> (required). Optional:{" "}
-              <code className="rounded bg-muted px-1">email</code>,{" "}
-              <code className="rounded bg-muted px-1">date_of_birth</code>. Existing rows match by phone
+            <p className="dashboard-hint mt-1 text-xs leading-relaxed">
+              Headers: <code className="dashboard-inline-code">first_name</code>,{" "}
+              <code className="dashboard-inline-code">last_name</code>,{" "}
+              <code className="dashboard-inline-code">phone</code> (required). Optional:{" "}
+              <code className="dashboard-inline-code">email</code>,{" "}
+              <code className="dashboard-inline-code">date_of_birth</code>. Existing rows match by phone
               (last 10 digits).
             </p>
-            <label className="mt-3 block">
+            <label className="mt-4 block">
               <span className="sr-only">Upload CSV</span>
               <input
                 type="file"
                 accept=".csv,text/csv"
-                className="block w-full text-sm text-muted-foreground file:mr-2 file:rounded-md file:border file:border-border file:bg-card file:px-3 file:py-1.5"
+                className={cn(
+                  "block w-full max-w-full cursor-pointer text-sm text-muted-foreground",
+                  "file:mr-3 file:cursor-pointer file:rounded-xl file:border-0",
+                  "file:bg-cta file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-cta-foreground",
+                  "file:shadow-sm file:transition file:duration-200 hover:file:bg-cta/90",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                )}
                 disabled={importing}
                 onChange={(e) => void handleFileChange(e)}
               />
@@ -218,6 +226,6 @@ export default function BusinessCustomersPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </BusinessPageShell>
   );
 }

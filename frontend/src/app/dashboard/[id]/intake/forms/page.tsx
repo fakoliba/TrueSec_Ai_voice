@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { deleteIntakeForm, listIntakeForms } from "@/lib/api";
 import type { IntakeFormRecord } from "@/lib/api";
+import { BusinessPageShell } from "@/components/dashboard/BusinessPageShell";
+import { Card } from "@/components/ui/Card";
+import { buttonClasses } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 
 export default function IntakeFormsListPage() {
   const params = useParams();

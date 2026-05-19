@@ -7,6 +7,7 @@ import { apiFetch, deleteBusiness, updateBusiness } from "@/lib/api";
 import type { Business } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { BusinessPageShell } from "@/components/dashboard/BusinessPageShell";
 
 export default function EditBusinessPage() {
   const params = useParams();
@@ -130,13 +131,14 @@ export default function EditBusinessPage() {
   }
 
   return (
-    <div>
-      <Link href={`/dashboard/${id}`} className="mb-4 inline-block text-sm text-muted-foreground hover:underline">
-        ← Back to business
-      </Link>
-      <div className="rounded-xl border border-border bg-card p-6">
-        <h1 className="text-xl font-semibold text-foreground">Edit business</h1>
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+    <BusinessPageShell
+      section="Edit business"
+      title="Edit business"
+      description="Update your business profile, contact details, and location."
+      contentClassName="max-w-2xl"
+    >
+      <Card>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label htmlFor="name" className="mb-1 block text-sm font-medium text-foreground">
               Name <span className="text-red-500">*</span>
@@ -298,7 +300,7 @@ export default function EditBusinessPage() {
             Delete business
           </Button>
         </div>
-      </div>
+      </Card>
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
@@ -323,6 +325,6 @@ export default function EditBusinessPage() {
           </Card>
         </div>
       )}
-    </div>
+    </BusinessPageShell>
   );
 }

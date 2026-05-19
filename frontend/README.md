@@ -4,15 +4,15 @@ Frontend for the AI Voice Assistant backend. Sign in, view businesses, chat with
 
 ## Setup
 
-1. Copy env example and set your backend URL:
-   ```bash
-   cp .env.local.example .env.local
+1. Create `frontend/.env.local` for local dev against the **deployed** backend (recommended — avoids CORS):
    ```
-   Edit `.env.local` and set:
+   NEXT_PUBLIC_USE_API_PROXY=true
+   BACKEND_PROXY_TARGET=https://backend-api-1021282359242.us-central1.run.app
+   ```
+   Or point the browser directly at a backend (requires `BACKEND_CORS_ORIGINS` to include `http://localhost:3000`):
    ```
    NEXT_PUBLIC_API_URL=http://localhost:8000
    ```
-   (Use your deployed API URL when testing on GC.)
 
 2. Install and run:
    ```bash

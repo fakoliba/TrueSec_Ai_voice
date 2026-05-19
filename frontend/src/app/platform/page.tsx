@@ -100,7 +100,7 @@ export default function PlatformHomePage() {
       </div>
 
       {error && (
-        <p className="mb-4 rounded-lg border border-red-500/30 bg-red-950/40 p-3 text-sm text-red-300">{error}</p>
+        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>
       )}
 
       {filtered.length === 0 && !error ? (

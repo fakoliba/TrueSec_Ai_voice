@@ -1,5 +1,18 @@
-const getApiUrl = () =>
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { getAccessToken } from "@/lib/auth-session";
+
+/** Same-origin /api in dev (Next rewrites to Cloud Run). Set NEXT_PUBLIC_USE_API_PROXY=false to call backend directly. */
+const getApiUrl = () => {
+  if (process.env.NEXT_PUBLIC_USE_API_PROXY === "false") {
+    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  }
+  if (
+    process.env.NEXT_PUBLIC_USE_API_PROXY === "true" ||
+    process.env.NODE_ENV === "development"
+  ) {
+    return "";
+  }
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+};
 
 export function apiUrl(path: string): string {
   const base = getApiUrl().replace(/\/$/, "");
@@ -265,8 +278,7 @@ export async function setPlatformUserRole(userId: number, role: string): Promise
 }
 
 function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("token");
+  return getAccessToken();
 }
 
 /** All businesses (super_admin only). */
@@ -625,6 +637,30 @@ export async function listBusinessCalendars(businessId: number): Promise<Calenda
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error((err as { detail?: string }).detail || "Failed to load calendars");
+  }
+  return res.json();
+}
+
+/** Events from the business primary calendar (Google / Outlook). Requires a connected integration. */
+export async function listBusinessCalendarEvents(
+  businessId: number,
+  options?: { timeMin?: string; timeMax?: string; maxResults?: number },
+): Promise<unknown[]> {
+  const token = getToken();
+  if (!token) throw new Error("Not authenticated");
+  const params = new URLSearchParams();
+  if (options?.timeMin) params.set("time_min", options.timeMin);
+  if (options?.timeMax) params.set("time_max", options.timeMax);
+  if (options?.maxResults != null) params.set("max_results", String(options.maxResults));
+  const qs = params.toString();
+  const res = await apiFetch(
+    `/api/businesses/${businessId}/calendars/events${qs ? `?${qs}` : ""}`,
+    { token },
+  );
+  if (res.status === 401) throw new Error("Not authenticated");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { detail?: string }).detail || "Failed to load calendar events");
   }
   return res.json();
 }

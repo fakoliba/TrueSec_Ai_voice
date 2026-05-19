@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     # Application settings
     APP_NAME: str = "AI Voice Assistant"
     DEBUG: bool = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
+    # When False, forgot-password never returns reset_token in JSON (use email link in production).
+    EXPOSE_PASSWORD_RESET_TOKEN: bool = os.getenv("EXPOSE_PASSWORD_RESET_TOKEN", "").lower() in (
+        "true",
+        "1",
+        "t",
+    )
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = _int_env("ACCESS_TOKEN_EXPIRE_MINUTES", 10080)  # 7 days default

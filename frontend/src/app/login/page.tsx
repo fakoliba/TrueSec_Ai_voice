@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/lib/api";
+import { setAccessToken } from "@/lib/auth-session";
 import { AuthShell } from "@/components/ui/AuthShell";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -28,9 +29,7 @@ function LoginForm() {
     setLoading(true);
     try {
       const data = await login(email, password);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("token", data.access_token);
-      }
+      setAccessToken(data.access_token);
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
