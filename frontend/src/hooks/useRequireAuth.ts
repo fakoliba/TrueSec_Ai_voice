@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { getAccessToken } from "@/lib/auth-session";
 
 /**
- * Redirects unauthenticated users. Returns false until a token is present (reduces content flash).
+ * Redirects unauthenticated users. Reads token synchronously on first render to avoid redirect loops after login.
  */
 export function useRequireAuth(redirectTo = "/login"): boolean {
   const router = useRouter();
-  const [authed, setAuthed] = useState(false);
+  const [authed, setAuthed] = useState(() =>
+    typeof window !== "undefined" ? Boolean(getAccessToken()) : false,
+  );
 
   useEffect(() => {
     const token = getAccessToken();

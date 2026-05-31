@@ -1,17 +1,21 @@
 import { getAccessToken } from "@/lib/auth-session";
 
-/** Same-origin /api in dev (Next rewrites to Cloud Run). Set NEXT_PUBLIC_USE_API_PROXY=false to call backend directly. */
-const getApiUrl = () => {
+const DEFAULT_CLOUD_API = "https://backend-api-1021282359242.us-central1.run.app";
+
+/**
+ * API base URL for browser requests.
+ * Default: same-origin `/api/*` (proxied to backend via app/api/[...path]/route.ts).
+ * Set NEXT_PUBLIC_USE_API_PROXY=false to call NEXT_PUBLIC_API_URL directly (requires CORS).
+ */
+const getApiUrl = (): string => {
   if (process.env.NEXT_PUBLIC_USE_API_PROXY === "false") {
-    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const direct = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+    if (direct && !direct.includes("localhost")) return direct;
+    if (direct && process.env.NODE_ENV === "development") return direct;
+    return direct || DEFAULT_CLOUD_API;
   }
-  if (
-    process.env.NEXT_PUBLIC_USE_API_PROXY === "true" ||
-    process.env.NODE_ENV === "development"
-  ) {
-    return "";
-  }
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  // Same-origin proxy (dev + production)
+  return "";
 };
 
 export function apiUrl(path: string): string {
@@ -381,7 +385,7 @@ export async function register(payload: RegisterPayload): Promise<UserProfile> {
 }
 
 export async function login(email: string, password: string): Promise<TokenResponse> {
-  const form = new URLSearchParams({ username: email, password });
+  const form = new URLSearchParams({ username: email.trim(), password });
   const url = apiUrl("/api/auth/token");
   let res: Response;
   try {
@@ -394,17 +398,28 @@ export async function login(email: string, password: string): Promise<TokenRespo
     const msg = e instanceof Error ? e.message : String(e);
     if (msg === "Failed to fetch") {
       throw new Error(
-        `Cannot reach the API at ${url}. Check that the backend is running and CORS allows this origin. ` +
-        "If using the deployed app, ensure BACKEND_CORS_ORIGINS includes the frontend URL and redeploy the frontend with NEXT_PUBLIC_API_URL set to the backend URL."
+        "Cannot reach the API. Restart the dev server (npm run dev) and open the URL it prints (usually http://localhost:3000). " +
+          "Ensure frontend/.env.local has BACKEND_PROXY_TARGET set to the Cloud Run backend.",
       );
     }
     throw e;
   }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error((err as { detail?: string }).detail || "Login failed");
+    const detail = (err as { detail?: string }).detail;
+    if (res.status === 401) {
+      throw new Error(detail || "Incorrect email or password");
+    }
+    if (res.status === 502) {
+      throw new Error(detail || "API backend unavailable");
+    }
+    throw new Error(detail || "Login failed");
   }
-  return res.json();
+  const data = (await res.json()) as TokenResponse;
+  if (!data.access_token) {
+    throw new Error("Login succeeded but no access token was returned");
+  }
+  return data;
 }
 
 export async function createBusiness(payload: BusinessCreate): Promise<Business> {

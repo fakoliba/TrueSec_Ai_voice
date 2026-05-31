@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiFetch, getProfile, canCreateBusiness } from "@/lib/api";
+import { clearAccessToken, getAccessToken } from "@/lib/auth-session";
 import type { Business, UserProfile } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { buttonClasses } from "@/components/ui/Button";
@@ -19,7 +20,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getAccessToken();
     if (!token) {
       router.push("/login");
       return;
@@ -28,7 +29,7 @@ export default function DashboardPage() {
     Promise.all([
       apiFetch("/api/businesses/", { token }).then((res) => {
         if (res.status === 401) {
-          localStorage.removeItem("token");
+          clearAccessToken();
           router.push("/login");
           return [] as Business[];
         }

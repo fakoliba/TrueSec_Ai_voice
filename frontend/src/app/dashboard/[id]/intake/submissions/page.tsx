@@ -62,40 +62,48 @@ export default function IntakeSubmissionsPage() {
         </select>
       </div>
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
-      {loading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
-      ) : subs.length === 0 ? (
-        <p className="mt-6 text-sm text-muted-foreground">No submissions yet.</p>
-      ) : (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-border text-muted-foreground">
-                <th className="py-2 pr-4">ID</th>
-                <th className="py-2 pr-4">Form</th>
-                <th className="py-2 pr-4">Status</th>
-                <th className="py-2 pr-4">Submitted</th>
-                <th className="py-2">Responses</th>
+      <div className="mt-6 overflow-x-auto">
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th className="py-2.5 pr-4 font-semibold">ID</th>
+              <th className="py-2.5 pr-4 font-semibold">Form</th>
+              <th className="py-2.5 pr-4 font-semibold">Status</th>
+              <th className="py-2.5 pr-4 font-semibold">Submitted</th>
+              <th className="py-2.5 font-semibold">Responses</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                  Loading…
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {subs.map((s) => (
-                <tr key={s.id} className="border-b border-border/60">
-                  <td className="py-2 pr-4 font-mono text-xs">{s.id}</td>
-                  <td className="py-2 pr-4">{s.form_name ?? `#${s.intake_form_id}`}</td>
-                  <td className="py-2 pr-4 capitalize">{s.status}</td>
-                  <td className="py-2 pr-4 text-muted-foreground">
+            ) : subs.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                  No submissions yet.
+                </td>
+              </tr>
+            ) : (
+              subs.map((s) => (
+                <tr key={s.id} className="border-b border-border/60 last:border-0">
+                  <td className="py-3 pr-4 font-mono text-xs">{s.id}</td>
+                  <td className="py-3 pr-4">{s.form_name ?? `#${s.intake_form_id}`}</td>
+                  <td className="py-3 pr-4 capitalize">{s.status}</td>
+                  <td className="py-3 pr-4 text-muted-foreground">
                     {new Date(s.submitted_at).toLocaleString()}
                   </td>
-                  <td className="py-2">
+                  <td className="py-3">
                     <IntakeResponsesCell responses={s.responses} />
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -5,8 +5,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ARG NEXT_PUBLIC_API_URL=https://backend-api-1021282359242.us-central1.run.app
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG BACKEND_PROXY_TARGET=https://backend-api-1021282359242.us-central1.run.app
+ENV BACKEND_PROXY_TARGET=$BACKEND_PROXY_TARGET
+ENV NEXT_PUBLIC_USE_API_PROXY=true
 RUN npm run build
 
 FROM node:20-alpine AS runner

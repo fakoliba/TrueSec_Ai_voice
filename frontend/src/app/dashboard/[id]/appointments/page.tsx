@@ -8,12 +8,21 @@ import { Card } from "@/components/ui/Card";
 
 type Appointment = {
   id: number;
+  title: string;
   start_time: string;
   end_time: string;
   status: string;
+  source?: string | null;
   customer_id?: number;
   service_id?: number;
 };
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
 
 export default function AppointmentsPage() {
   const params = useParams();
@@ -49,29 +58,51 @@ export default function AppointmentsPage() {
       section="Appointments"
       title="Appointments"
       description="View and manage scheduled visits for this business."
-      contentClassName="max-w-3xl"
+      contentClassName="max-w-5xl"
     >
       {loading ? (
-        <p className="text-center text-muted-foreground">Loading…</p>
-      ) : appointments.length === 0 ? (
-        <Card className="text-center">
-          <p className="text-muted-foreground">No appointments yet.</p>
+        <Card>
+          <p className="text-sm text-muted-foreground">Loading…</p>
         </Card>
       ) : (
-        <ul className="space-y-3">
-          {appointments.map((a) => (
-            <li key={a.id}>
-              <Card className="flex flex-wrap items-center justify-between gap-2 py-4 text-sm">
-                <span className="font-medium text-foreground">
-                  {new Date(a.start_time).toLocaleString()}
-                </span>
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium capitalize text-primary">
-                  {a.status}
-                </span>
-              </Card>
-            </li>
-          ))}
-        </ul>
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th className="py-2.5 pr-4 font-semibold">Title</th>
+                  <th className="py-2.5 pr-4 font-semibold">Start</th>
+                  <th className="py-2.5 pr-4 font-semibold">End</th>
+                  <th className="py-2.5 pr-4 font-semibold">Status</th>
+                  <th className="py-2.5 font-semibold">Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appointments.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                      No appointments yet.
+                    </td>
+                  </tr>
+                ) : (
+                  appointments.map((a) => (
+                    <tr key={a.id} className="border-b border-border/60 last:border-0">
+                      <td className="py-3 pr-4 font-medium text-foreground">{a.title}</td>
+                      <td className="py-3 pr-4 text-muted-foreground">{formatDateTime(a.start_time)}</td>
+                      <td className="py-3 pr-4 text-muted-foreground">{formatDateTime(a.end_time)}</td>
+                      <td className="py-3 pr-4">
+                        <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium capitalize text-primary">
+                          {a.status}
+                        </span>
+                      </td>
+                      <td className="py-3 capitalize text-muted-foreground">{a.source ?? "—"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
     </BusinessPageShell>
   );

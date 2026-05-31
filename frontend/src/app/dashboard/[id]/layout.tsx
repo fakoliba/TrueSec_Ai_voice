@@ -8,7 +8,6 @@ import { BusinessLayoutProvider } from "@/components/dashboard/BusinessLayoutCon
 import SuperAdminBanner from "@/components/SuperAdminBanner";
 import { apiFetch } from "@/lib/api";
 import type { Business } from "@/lib/api";
-import { AuthGate } from "@/components/security/AuthGate";
 import { getAccessToken } from "@/lib/auth-session";
 
 export default function BusinessSegmentLayout({ children }: { children: React.ReactNode }) {
@@ -36,9 +35,7 @@ export default function BusinessSegmentLayout({ children }: { children: React.Re
             <div className="flex w-full flex-1 flex-col md:flex-row md:items-stretch">
               <BusinessNav businessId={id} />
               <div className="min-w-0 w-full flex-1 px-5 py-7 sm:px-7 sm:py-8 md:min-h-0 lg:px-9">
-                <div className="mx-auto w-full max-w-[1400px]">
-                  <AuthGate>{children}</AuthGate>
-                </div>
+                <div className="mx-auto w-full max-w-[1400px]">{children}</div>
               </div>
             </div>
           </div>
